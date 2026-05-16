@@ -6,18 +6,15 @@
 #include "PowerUp.h"
 #include "Particle.h"
 #include <vector>
-
-#include <future>  // 🔑 std::async
-#include <mutex>    // 🔑 std::mutex
-// Game.h 公共方法区
+#include <future>
+#include <mutex>
 
 enum GameScreen { MENU, PLAYING, PAUSED, GAME_OVER, LEVEL_SCORE };
 
 class Game {
 private:
     GameScreen currentScreen;
-    int screenWidth;
-    int screenHeight;
+    int screenWidth, screenHeight;
     float ballSpeedX, ballSpeedY;
     float ballRadius;
     float paddleW, paddleH, paddleSpeed;
@@ -25,9 +22,7 @@ private:
     float brickW, brickH, brickSpace;
     int startLives, maxGameTime;
 
-    int currentLevel;
-    int unlockedLevel;
-    int highScore;
+    int currentLevel, unlockedLevel, highScore;
     float levelStartTimer;
     bool showLevelText;
     bool isPaused;
@@ -40,24 +35,24 @@ private:
     std::vector<Ball> multiBalls;
 
     bool ballServed;
-    int playerLife;
-    int score;
+    int playerLife, score;
     float gameTime;
 
-    float paddleLongerTime;
-    float slowBallTime;
+    float paddleLongerTime, slowBallTime;
     const float POWERUP_DURATION;
 
-    // Audio & Visual
     Music bgMusic;
-    Sound hitSound;
-    Sound powerUpSound;
-    Sound gameOverSound;
-    Texture2D bgTexture;
-    Texture2D logoTexture;
+    Sound hitSound, powerUpSound, gameOverSound;
+    Texture2D bgTexture, logoTexture;
     int introState;
-    float introTimer;
-    float logoAlpha;
+    float introTimer, logoAlpha;
+
+    // 异步加载
+    std::future<void> loadFuture;
+    std::mutex loadMutex;
+    bool loadingTexture = false;
+    bool loadComplete = false;
+    bool loadEffectApplied = false;
 
     void LoadConfig();
     void InitBricks();
@@ -66,14 +61,8 @@ private:
     void LoadUnlockedLevel();
     void SaveUnlockedLevel();
 
-    std::future<void> loadFuture;
-    std::mutex loadMutex;
-    bool loadingTexture = false;      // 是否正在加载
-    bool loadComplete = false;        // 加载是否完成（由线程设置，主线程读取）
-    bool loadEffectApplied = false;   // 效果是否已应用
-
-    void StartAsyncLoad();            // 启动异步加载
-    void CheckAsyncLoad(); 
+    void StartAsyncLoad();
+    void CheckAsyncLoad();
 
 public:
     Game();
@@ -86,6 +75,7 @@ public:
     void UpdateGamePlay(float dt);
     void DrawGamePlay();
     bool IsGameOver();
+    bool IsPaused() const { return isPaused; }
 
     void DrawMenu();
     void DrawPauseMenu();
@@ -118,5 +108,4 @@ public:
     int GetScore() const { return score; }
     int GetHighScore() const { return highScore; }
     int GetCurrentLevel() const { return currentLevel; }
-    bool IsPaused() const { return isPaused; }
 };

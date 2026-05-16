@@ -19,4 +19,5 @@ public:
     void Deactivate() { active = false; }
     bool IsActive() const { return active; }
     PowerUpType GetType() const { return type; }
+    Vector2 GetPosition() const { return pos; }
 };
